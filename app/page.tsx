@@ -113,27 +113,19 @@ export default function Home() {
   };
 
   const runAnalysis = async () => {
+    setCurrentStep('results');
     setIsAnalyzing(true);
     setError(null);
-    setCurrentStep('results');
     try {
-      const vendorData = vendors
-        .filter((v) => v.status === 'loaded')
-        .map((v) => ({
-          id: v.id,
-          name: v.name,
-          url: v.url,
-          description: v.description,
-        }));
-      const categoryLabels = selectedResearch.map(
-        (id) => RESEARCH_CATEGORIES.find((c) => c.id === id)?.label || id
-      );
+      const loadedVendors = vendors.filter((v) => v.status === 'loaded');
       const response = await fetch('/api/analyze-vendors', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          vendors: vendorData,
-          researchCategories: categoryLabels,
+          vendors: loadedVendors,
+          categories: selectedResearch.map(
+            (id) => RESEARCH_CATEGORIES.find((c) => c.id === id)!.label
+          ),
         }),
       });
       const data = await response.json();
@@ -155,77 +147,135 @@ export default function Home() {
   const loadedVendorsCount = vendors.filter((v) => v.status === 'loaded').length;
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col relative">
       <Header />
-      <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
+
+      <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-12 relative z-10">
+        {/* Error Alert */}
         {error && (
-          <div className="bg-red-50 border-2 border-red-200 text-red-700 px-6 py-4 rounded-lg mb-6">
-            <strong>Error:</strong> {error}
+          <div className="backdrop-blur-xl bg-red-500/10 border border-red-500/50 text-red-200 px-6 py-4 rounded-2xl mb-8
+                          shadow-xl animate-in slide-in-from-top duration-300">
+            <div className="flex items-center gap-3">
+              <svg className="w-5 h-5 text-red-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <strong className="font-semibold">Error:</strong> {error}
+              </div>
+            </div>
           </div>
         )}
 
+        {/* STEP 1: Vendor Selection */}
         {currentStep === 'vendor-selection' && (
-          <div className="space-y-8">
-            <div className="text-center space-y-3">
-              <h2 className="text-4xl font-bold text-[#2b3e50]">
-                Step 1: Add Vendors to Compare
+          <div className="space-y-10 animate-in fade-in duration-500">
+            {/* Step Header */}
+            <div className="text-center space-y-4">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-xl bg-white/5 border border-white/10 mb-4">
+                <span className="w-8 h-8 rounded-full bg-gradient-to-r from-[#9bc53d] to-[#1ab4a8] flex items-center justify-center text-white font-bold text-sm">1</span>
+                <span className="text-gray-300 font-semibold">Vendor Selection</span>
+              </div>
+              <h2 className="text-5xl font-bold bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent">
+                Add Vendors to Compare
               </h2>
-              <p className="text-lg text-gray-600">
-                Enter up to 4 vendor URLs to analyze and compare
+              <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+                Enter up to 4 vendor URLs and let our AI analyze their offerings
               </p>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-8 max-w-2xl mx-auto">
+            {/* URL Input Card */}
+            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8 max-w-3xl mx-auto shadow-2xl hover:bg-white/8 transition-all duration-300">
               <div className="flex gap-3">
                 <input
                   type="url"
                   value={urlInput}
                   onChange={(e) => setUrlInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && addVendor()}
-                  placeholder="https://example.com"
-                  className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-[#9bc53d] focus:outline-none text-lg"
+                  placeholder="https://company-website.com"
+                  className="flex-1 px-6 py-4 backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl
+                           focus:border-[#9bc53d]/50 focus:bg-white/10 focus:outline-none text-white text-lg
+                           placeholder-gray-500 transition-all duration-300"
                 />
                 <button
                   onClick={addVendor}
                   disabled={vendors.length >= 4}
-                  className="bg-[#9bc53d] hover:bg-[#8ab02f] disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-8 py-3 rounded-lg font-semibold transition-all"
+                  className="group relative px-8 py-4 rounded-2xl font-bold overflow-hidden
+                           bg-gradient-to-r from-[#9bc53d] to-[#1ab4a8]
+                           hover:shadow-xl hover:shadow-[#9bc53d]/30
+                           hover:scale-105 active:scale-95
+                           disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
+                           transition-all duration-300"
                 >
-                  Add Vendor
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0
+                                translate-x-[-200%] group-hover:translate-x-[200%]
+                                transition-transform duration-700"></div>
+                  <span className="relative text-[#0a0f1e]">Add Vendor</span>
                 </button>
               </div>
-              <p className="text-sm text-gray-500 mt-2">
-                {vendors.length}/4 vendors added
-              </p>
+              <div className="flex items-center justify-between mt-4">
+                <p className="text-sm text-gray-400">
+                  {vendors.length}/4 vendors added
+                </p>
+                <div className="flex gap-1">
+                  {[...Array(4)].map((_, i) => (
+                    <div
+                      key={i}
+                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                        i < vendors.length ? 'bg-[#9bc53d] shadow-lg shadow-[#9bc53d]/50' : 'bg-white/10'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
 
+            {/* AI Competitor Discovery Card */}
             {loadedVendorsCount === 1 && vendors.length < 4 && (
-              <div className="bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-200 rounded-xl p-6 max-w-2xl mx-auto">
-                <div className="flex items-start gap-4">
-                  <div className="text-4xl">🤖</div>
+              <div className="backdrop-blur-xl bg-gradient-to-br from-purple-500/10 to-blue-500/10 border border-purple-500/30 rounded-3xl p-8 max-w-3xl mx-auto shadow-2xl animate-in slide-in-from-bottom duration-500">
+                <div className="flex items-start gap-6">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-8 h-8 text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                  </div>
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-[#2b3e50] mb-2">
+                    <h3 className="text-2xl font-bold text-white mb-3 flex items-center gap-2">
                       AI-Powered Competitor Discovery
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-500/30 text-purple-200 border border-purple-500/50">
+                        BETA
+                      </span>
                     </h3>
-                    <p className="text-gray-700 mb-4">
-                      Let our AI identify top competitors to {vendors.find((v) => v.status === 'loaded')?.name} for you! We'll automatically find and add relevant alternatives for comparison.
+                    <p className="text-gray-300 mb-5 leading-relaxed">
+                      Let our AI identify top competitors to <span className="text-[#9bc53d] font-semibold">{vendors.find((v) => v.status === 'loaded')?.name}</span> for you! We'll automatically find and add relevant alternatives for comparison.
                     </p>
                     <button
                       onClick={suggestCompetitors}
                       disabled={isSuggestingCompetitors}
-                      className="bg-gradient-to-r from-[#667eea] to-[#764ba2] hover:shadow-lg disabled:opacity-50 text-white px-6 py-3 rounded-lg font-semibold transition-all flex items-center gap-2"
+                      className="group relative px-6 py-3 rounded-xl font-semibold overflow-hidden
+                               bg-gradient-to-r from-purple-500 to-blue-500
+                               hover:shadow-xl hover:shadow-purple-500/30
+                               hover:scale-105 active:scale-95
+                               disabled:opacity-50
+                               transition-all duration-300"
                     >
+                      <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0
+                                    translate-x-[-200%] group-hover:translate-x-[200%]
+                                    transition-transform duration-700"></div>
                       {isSuggestingCompetitors ? (
-                        <>
+                        <span className="relative flex items-center gap-2 text-white">
                           <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                           Finding Competitors...
-                        </>
+                        </span>
                       ) : (
-                        <>
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        <span className="relative flex items-center gap-2 text-white">
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round"
+                                  d="M13 10V3L4 14h7v7l9-11h-7z" />
                           </svg>
                           AI Suggest Competitors
-                        </>
+                        </span>
                       )}
                     </button>
                   </div>
@@ -233,8 +283,9 @@ export default function Home() {
               </div>
             )}
 
+            {/* Vendor Cards Grid */}
             {vendors.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-500">
                 {vendors.map((vendor) => (
                   <VendorCard
                     key={vendor.id}
@@ -245,125 +296,220 @@ export default function Home() {
               </div>
             )}
 
+            {/* Continue Button */}
             {loadedVendorsCount >= 2 && (
-              <div className="flex justify-center">
+              <div className="flex justify-center pt-4 animate-in slide-in-from-bottom duration-500">
                 <button
                   onClick={() => setCurrentStep('research-selection')}
-                  className="bg-gradient-to-r from-[#9bc53d] to-[#8ab02f] hover:shadow-xl text-white px-12 py-4 rounded-xl font-bold text-lg transition-all hover:-translate-y-1"
+                  className="group relative px-12 py-5 rounded-2xl font-bold text-lg overflow-hidden
+                           bg-gradient-to-r from-[#9bc53d] to-[#1ab4a8]
+                           hover:shadow-2xl hover:shadow-[#9bc53d]/40
+                           hover:scale-105 active:scale-95
+                           transition-all duration-300"
                 >
-                  Continue to Research Selection →
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0
+                                translate-x-[-200%] group-hover:translate-x-[200%]
+                                transition-transform duration-700"></div>
+                  <span className="relative flex items-center gap-3 text-[#0a0f1e]">
+                    Continue to Research Selection
+                    <svg className="w-6 h-6 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </span>
                 </button>
               </div>
             )}
           </div>
         )}
 
+        {/* STEP 2: Research Selection */}
         {currentStep === 'research-selection' && (
-          <div className="space-y-8">
-            <div className="text-center space-y-3">
-              <h2 className="text-4xl font-bold text-[#2b3e50]">
-                Step 2: Select Research Categories
+          <div className="space-y-10 animate-in fade-in duration-500">
+            {/* Step Header */}
+            <div className="text-center space-y-4">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-xl bg-white/5 border border-white/10 mb-4">
+                <span className="w-8 h-8 rounded-full bg-gradient-to-r from-[#9bc53d] to-[#1ab4a8] flex items-center justify-center text-white font-bold text-sm">2</span>
+                <span className="text-gray-300 font-semibold">Research Categories</span>
+              </div>
+              <h2 className="text-5xl font-bold bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent">
+                Select Research Categories
               </h2>
-              <p className="text-lg text-gray-600">
-                Choose what aspects to compare across vendors
+              <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+                Choose what aspects to compare across your selected vendors
               </p>
             </div>
 
+            {/* Category Selection Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {RESEARCH_CATEGORIES.map((category) => (
                 <label
                   key={category.id}
-                  className="flex items-start gap-4 bg-white p-6 rounded-xl border-2 border-gray-200 hover:border-[#9bc53d] cursor-pointer transition-all hover:shadow-lg"
+                  className={`group relative backdrop-blur-xl rounded-2xl p-6 cursor-pointer
+                           transition-all duration-300 hover:scale-[1.02]
+                           ${
+                             selectedResearch.includes(category.id)
+                               ? 'bg-[#9bc53d]/15 border-2 border-[#9bc53d] shadow-xl shadow-[#9bc53d]/20'
+                               : 'bg-white/5 border border-white/10 hover:bg-white/8 hover:border-white/20'
+                           }`}
                 >
-                  <input
-                    type="checkbox"
-                    checked={selectedResearch.includes(category.id)}
-                    onChange={() => toggleResearchCategory(category.id)}
-                    className="w-5 h-5 mt-1 accent-[#9bc53d]"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-2xl">{category.icon}</span>
-                      <span className="font-semibold text-[#2b3e50]">
-                        {category.label}
-                      </span>
+                  <div className="flex items-start gap-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedResearch.includes(category.id)}
+                      onChange={() => toggleResearchCategory(category.id)}
+                      className="mt-1 w-5 h-5 rounded border-2 border-white/30 bg-white/5
+                               checked:bg-[#9bc53d] checked:border-[#9bc53d]
+                               focus:ring-2 focus:ring-[#9bc53d]/50 transition-all"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-2xl">{category.icon}</span>
+                        <span className="font-bold text-white group-hover:text-[#9bc53d] transition-colors">
+                          {category.label}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-400 leading-relaxed">
+                        {category.description}
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-600">{category.description}</p>
                   </div>
+
+                  {/* Selection Indicator */}
+                  {selectedResearch.includes(category.id) && (
+                    <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-[#9bc53d] flex items-center justify-center shadow-lg shadow-[#9bc53d]/50">
+                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
                 </label>
               ))}
             </div>
 
-            <div className="flex justify-center gap-4">
+            {/* Selected Count */}
+            <div className="text-center">
+              <p className="text-gray-400">
+                <span className="text-[#9bc53d] font-bold text-2xl">{selectedResearch.length}</span> {selectedResearch.length === 1 ? 'category' : 'categories'} selected
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-center gap-4 pt-4">
               <button
                 onClick={() => setCurrentStep('vendor-selection')}
-                className="bg-gray-500 hover:bg-gray-600 text-white px-8 py-4 rounded-xl font-semibold transition-all"
+                className="group px-8 py-4 rounded-2xl font-semibold backdrop-blur-xl
+                         bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20
+                         text-white hover:scale-105 active:scale-95
+                         transition-all duration-300"
               >
-                ← Back
+                <span className="flex items-center gap-2">
+                  <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                  </svg>
+                  Back
+                </span>
               </button>
               <button
                 onClick={runAnalysis}
                 disabled={selectedResearch.length === 0}
-                className="bg-gradient-to-r from-[#9bc53d] to-[#8ab02f] hover:shadow-xl disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed text-white px-12 py-4 rounded-xl font-bold text-lg transition-all hover:-translate-y-1"
+                className="group relative px-12 py-4 rounded-2xl font-bold text-lg overflow-hidden
+                         bg-gradient-to-r from-[#9bc53d] to-[#1ab4a8]
+                         hover:shadow-2xl hover:shadow-[#9bc53d]/40
+                         hover:scale-105 active:scale-95
+                         disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
+                         transition-all duration-300"
               >
-                Run Analysis →
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0
+                              translate-x-[-200%] group-hover:translate-x-[200%]
+                              transition-transform duration-700"></div>
+                <span className="relative flex items-center gap-3 text-[#0a0f1e]">
+                  Run Analysis
+                  <svg className="w-6 h-6 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </span>
               </button>
             </div>
           </div>
         )}
 
+        {/* STEP 3: Results */}
         {currentStep === 'results' && (
-          <div className="space-y-8">
+          <div className="space-y-10 animate-in fade-in duration-500">
             {isAnalyzing ? (
-              <div className="text-center py-20">
-                <div className="w-20 h-20 border-8 border-[#9bc53d] border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
-                <h2 className="text-3xl font-bold text-[#2b3e50] mb-3">
+              <div className="text-center py-32">
+                <div className="relative w-24 h-24 mx-auto mb-8">
+                  <div className="absolute inset-0 border-8 border-[#9bc53d]/30 rounded-full"></div>
+                  <div className="absolute inset-0 border-8 border-transparent border-t-[#9bc53d] rounded-full animate-spin"></div>
+                  <div className="absolute inset-3 bg-[#9bc53d]/20 rounded-full blur-xl animate-pulse"></div>
+                </div>
+                <h2 className="text-4xl font-bold text-white mb-4">
                   Analyzing Vendors...
                 </h2>
-                <p className="text-lg text-gray-600">
-                  Our AI is comparing {loadedVendorsCount} vendors across{' '}
-                  {selectedResearch.length} categories
+                <p className="text-xl text-gray-400">
+                  Our AI is comparing <span className="text-[#9bc53d] font-bold">{loadedVendorsCount}</span> vendors across{' '}
+                  <span className="text-[#1ab4a8] font-bold">{selectedResearch.length}</span> categories
                 </p>
               </div>
             ) : analysisResults ? (
               <div className="space-y-8">
-                <div className="text-center space-y-3">
-                  <h2 className="text-4xl font-bold text-[#2b3e50]">
+                {/* Results Header */}
+                <div className="text-center space-y-4">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-xl bg-white/5 border border-white/10 mb-4">
+                    <span className="w-8 h-8 rounded-full bg-gradient-to-r from-[#9bc53d] to-[#1ab4a8] flex items-center justify-center text-white font-bold text-sm">✓</span>
+                    <span className="text-gray-300 font-semibold">Analysis Complete</span>
+                  </div>
+                  <h2 className="text-5xl font-bold bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent">
                     📊 Comparison Results
                   </h2>
-                  <p className="text-lg text-gray-600">
+                  <p className="text-gray-400">
                     Generated on {analysisResults.generatedAt.toLocaleString()}
                   </p>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-lg p-8">
-                  <h3 className="text-2xl font-bold text-[#2b3e50] mb-4">
-                    📝 Executive Summary
-                  </h3>
-                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                {/* Executive Summary */}
+                <div className="backdrop-blur-xl bg-gradient-to-br from-[#9bc53d]/15 to-[#1ab4a8]/15 border border-[#9bc53d]/30 rounded-3xl p-8 shadow-2xl">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 rounded-2xl bg-[#9bc53d]/20 border border-[#9bc53d]/40 flex items-center justify-center">
+                      <span className="text-2xl">📝</span>
+                    </div>
+                    <h3 className="text-3xl font-bold text-white">
+                      Executive Summary
+                    </h3>
+                  </div>
+                  <p className="text-gray-200 text-lg leading-relaxed whitespace-pre-wrap">
                     {analysisResults.overallSummary}
                   </p>
                 </div>
 
+                {/* Category Comparisons */}
                 {analysisResults.comparisonData.map((comparison, idx) => (
-                  <div key={idx} className="bg-white rounded-xl shadow-lg p-8">
-                    <h3 className="text-2xl font-bold text-[#2b3e50] mb-6">
-                      {RESEARCH_CATEGORIES.find((c) => c.label === comparison.category)
-                        ?.icon || '📌'}{' '}
-                      {comparison.category}
-                    </h3>
+                  <div key={idx} className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8 shadow-xl hover:bg-white/8 hover:border-white/15 transition-all duration-300">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center">
+                        <span className="text-2xl">
+                          {RESEARCH_CATEGORIES.find((c) => c.label === comparison.category)?.icon || '📌'}
+                        </span>
+                      </div>
+                      <h3 className="text-3xl font-bold text-white">
+                        {comparison.category}
+                      </h3>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {Object.entries(comparison.vendors).map(([vendorId, data]) => {
                         const vendor = vendors.find((v) => v.id === vendorId);
                         return (
                           <div
                             key={vendorId}
-                            className="border-2 border-gray-200 rounded-lg p-6"
+                            className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/8 hover:border-white/20 transition-all duration-300"
                           >
-                            <h4 className="font-bold text-lg text-[#2b3e50] mb-3">
-                              {vendor?.name}
-                            </h4>
-                            <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
+                            <div className="flex items-center gap-3 mb-4">
+                              <div className="w-3 h-3 rounded-full bg-[#9bc53d] shadow-lg shadow-[#9bc53d]/50"></div>
+                              <h4 className="font-bold text-xl text-white">
+                                {vendor?.name}
+                              </h4>
+                            </div>
+                            <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
                               {data.content}
                             </p>
                           </div>
@@ -373,24 +519,49 @@ export default function Home() {
                   </div>
                 ))}
 
-                <div className="bg-gradient-to-r from-[#9bc53d] to-[#8ab02f] text-white rounded-xl shadow-lg p-8">
-                  <h3 className="text-2xl font-bold mb-4">💡 Recommendations</h3>
-                  <ul className="space-y-3">
+                {/* Recommendations */}
+                <div className="backdrop-blur-xl bg-gradient-to-br from-purple-500/15 to-blue-500/15 border border-purple-500/30 rounded-3xl p-8 shadow-2xl">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 rounded-2xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center">
+                      <span className="text-2xl">💡</span>
+                    </div>
+                    <h3 className="text-3xl font-bold text-white">
+                      Recommendations
+                    </h3>
+                  </div>
+                  <ul className="space-y-4">
                     {analysisResults.recommendations.map((rec, idx) => (
-                      <li key={idx} className="flex items-start gap-3">
-                        <span className="text-2xl">✓</span>
-                        <span className="text-lg">{rec}</span>
+                      <li key={idx} className="flex items-start gap-4 backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-4">
+                        <div className="w-8 h-8 rounded-lg bg-[#9bc53d]/20 border border-[#9bc53d]/40 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-5 h-5 text-[#9bc53d]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                        <span className="text-gray-200 text-lg leading-relaxed">{rec}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                <div className="flex justify-center">
+                {/* New Comparison Button */}
+                <div className="flex justify-center pt-4">
                   <button
                     onClick={() => window.location.reload()}
-                    className="bg-[#2b3e50] hover:bg-[#1f2d3d] text-white px-12 py-4 rounded-xl font-bold text-lg transition-all"
+                    className="group relative px-12 py-5 rounded-2xl font-bold text-lg overflow-hidden
+                             backdrop-blur-xl bg-white/10 border border-white/20
+                             hover:bg-white/15 hover:border-white/30
+                             hover:scale-105 active:scale-95
+                             transition-all duration-300"
                   >
-                    Start New Comparison
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0
+                                  translate-x-[-200%] group-hover:translate-x-[200%]
+                                  transition-transform duration-700"></div>
+                    <span className="relative flex items-center gap-3 text-white">
+                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Start New Comparison
+                    </span>
                   </button>
                 </div>
               </div>
@@ -399,17 +570,20 @@ export default function Home() {
         )}
       </main>
 
-      <footer className="bg-[#2b3e50] text-white py-8 mt-auto">
+      {/* Footer */}
+      <footer className="relative z-10 backdrop-blur-xl bg-white/5 border-t border-white/10 py-8 mt-auto">
         <div className="max-w-7xl mx-auto px-6 text-center">
-          <div className="flex items-baseline justify-center gap-1 mb-2">
+          <div className="flex items-baseline justify-center gap-2 mb-3">
             <span className="text-[#9bc53d] text-2xl font-bold">CMG</span>
-            <span className="text-[#95a5a6] font-semibold">FINANCIAL</span>
+            <span className="text-gray-400 font-semibold tracking-wider">FINANCIAL</span>
           </div>
-          <p className="text-[#95a5a6] text-sm">
-            © {new Date().getFullYear()} CMG Financial. All rights reserved. | NMLS#
-            1820
+          <p className="text-gray-500 text-sm">
+            © {new Date().getFullYear()} CMG Financial. All rights reserved. | NMLS# 1820
           </p>
-          <p className="text-[#95a5a6] text-sm mt-2">
+          <p className="text-gray-500 text-sm mt-2 flex items-center justify-center gap-2">
+            <svg className="w-4 h-4 text-[#9bc53d]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
             AI-Powered Vendor Comparison Tool
           </p>
         </div>

@@ -1,31 +1,49 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f5f5f5;
-  --foreground: #2b3e50;
+  /* Modern Color Palette */
+  --background: #0a0f1e;
+  --background-light: #141b2d;
+  --foreground: #e8edf4;
+  --foreground-muted: #a1b1c7;
 
-  /* CMG Brand Colors */
+  /* CMG Brand Colors - Modernized */
   --cmg-green: #9bc53d;
-  --cmg-green-dark: #8ab02f;
+  --cmg-green-dark: #7da32a;
+  --cmg-green-light: #b8d96a;
+  --cmg-green-glow: rgba(155, 197, 61, 0.2);
+
   --cmg-navy: #2b3e50;
+  --cmg-navy-light: #3d5770;
   --cmg-teal: #1ab4a8;
-  --cmg-gray: #95a5a6;
-  --cmg-purple-start: #667eea;
-  --cmg-purple-end: #764ba2;
+  --cmg-teal-glow: rgba(26, 180, 168, 0.2);
+
+  /* Modern Accent Colors */
+  --accent-purple: #8b5cf6;
+  --accent-purple-light: #a78bfa;
+  --accent-blue: #3b82f6;
+  --accent-pink: #ec4899;
+
+  /* Glass Effects */
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-blur: blur(20px);
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.2);
+  --shadow-glow: 0 0 20px var(--cmg-green-glow);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-
-  /* CMG Custom Colors */
   --color-cmg-green: var(--cmg-green);
   --color-cmg-green-dark: var(--cmg-green-dark);
   --color-cmg-navy: var(--cmg-navy);
   --color-cmg-teal: var(--cmg-teal);
-  --color-cmg-gray: var(--cmg-gray);
-  --color-cmg-purple-start: var(--cmg-purple-start);
-  --color-cmg-purple-end: var(--cmg-purple-end);
+  --color-accent-purple: var(--accent-purple);
 }
 
 * {
@@ -35,12 +53,73 @@
 }
 
 body {
-  background: linear-gradient(135deg, #e8f5e9 0%, #f5f5f5 100%);
+  background: linear-gradient(135deg, #0a0f1e 0%, #1a1f35 50%, #0f1420 100%);
   color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Animated Background Gradient */
+body::before {
+  content: '';
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background:
+    radial-gradient(circle at 20% 50%, rgba(155, 197, 61, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+    radial-gradient(circle at 40% 20%, rgba(26, 180, 168, 0.05) 0%, transparent 50%);
+  animation: gradientShift 20s ease infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes gradientShift {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(5%, 5%) rotate(120deg); }
+  66% { transform: translate(-5%, 5%) rotate(240deg); }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--cmg-green);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cmg-green-light);
+}
+
+/* Glass Card Effect */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  box-shadow: var(--shadow-lg);
+}
+
+/* Glow Effect */
+.glow-green {
+  box-shadow: 0 0 20px var(--cmg-green-glow), 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Smooth Transitions */
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
 }
