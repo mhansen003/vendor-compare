@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "update-page": "node -e \"require('fs').writeFileSync('app/page.tsx', require('fs').readFileSync('components/Header.tsx').toString().replace(/.*/gs, '// Updated'))\""
   },
   "dependencies": {
     "axios": "^1.13.2",
