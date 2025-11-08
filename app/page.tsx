@@ -118,18 +118,38 @@ export default function Home() {
     setError(null);
     try {
       const loadedVendors = vendors.filter((v) => v.status === 'loaded');
+
+      // Only send necessary vendor fields to API
+      const vendorsForAnalysis = loadedVendors.map((v) => ({
+        id: v.id,
+        name: v.name,
+        url: v.url,
+        description: v.description,
+      }));
+
+      const categoriesForAnalysis = selectedResearch.map(
+        (id) => RESEARCH_CATEGORIES.find((c) => c.id === id)!.label
+      );
+
+      console.log('Sending to API:', {
+        vendorCount: vendorsForAnalysis.length,
+        categoryCount: categoriesForAnalysis.length,
+      });
+
       const response = await fetch('/api/analyze-vendors', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          vendors: loadedVendors,
-          researchCategories: selectedResearch.map(
-            (id) => RESEARCH_CATEGORIES.find((c) => c.id === id)!.label
-          ),
+          vendors: vendorsForAnalysis,
+          researchCategories: categoriesForAnalysis,
         }),
       });
+
       const data = await response.json();
+      console.log('API Response:', { success: response.ok, data });
+
       if (!response.ok) throw new Error(data.error || 'Failed to analyze vendors');
+
       setAnalysisResults({
         overallSummary: data.overallSummary,
         recommendations: data.recommendations,
@@ -137,6 +157,7 @@ export default function Home() {
         generatedAt: new Date(),
       });
     } catch (error: any) {
+      console.error('Analysis error:', error);
       setError(error.message);
       setCurrentStep('research-selection');
     } finally {
