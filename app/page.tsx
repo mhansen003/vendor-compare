@@ -123,7 +123,7 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           vendors: loadedVendors,
-          categories: selectedResearch.map(
+          researchCategories: selectedResearch.map(
             (id) => RESEARCH_CATEGORIES.find((c) => c.id === id)!.label
           ),
         }),
