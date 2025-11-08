@@ -1,26 +1,46 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f5f5f5;
+  --foreground: #2b3e50;
+
+  /* CMG Brand Colors */
+  --cmg-green: #9bc53d;
+  --cmg-green-dark: #8ab02f;
+  --cmg-navy: #2b3e50;
+  --cmg-teal: #1ab4a8;
+  --cmg-gray: #95a5a6;
+  --cmg-purple-start: #667eea;
+  --cmg-purple-end: #764ba2;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  /* CMG Custom Colors */
+  --color-cmg-green: var(--cmg-green);
+  --color-cmg-green-dark: var(--cmg-green-dark);
+  --color-cmg-navy: var(--cmg-navy);
+  --color-cmg-teal: var(--cmg-teal);
+  --color-cmg-gray: var(--cmg-gray);
+  --color-cmg-purple-start: var(--cmg-purple-start);
+  --color-cmg-purple-end: var(--cmg-purple-end);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  background: var(--background);
+  background: linear-gradient(135deg, #e8f5e9 0%, #f5f5f5 100%);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
 }
